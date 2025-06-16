@@ -2,15 +2,21 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 import { ThemeProvider, createTheme } from '@mui/material';
+import { blue, grey } from '@mui/material/colors';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: blue[700],
     },
     secondary: {
-      main: '#dc004e',
+      main: grey[900],
+    },
+    background: {
+      default: grey[50],
+      paper: grey[100],
     },
   },
 });
@@ -36,7 +42,7 @@ const App: React.FC = () => {
               path="/dashboard"
               element={
                 <PrivateRoute>
-                  <div>Dashboard (Wird noch implementiert)</div>
+                  <Dashboard />
                 </PrivateRoute>
               }
             />
