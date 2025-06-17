@@ -6,7 +6,7 @@ const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "tattootimev2.firebaseapp.com",
   projectId: "tattootimev2",
-  storageBucket: "tattootimev2.firebasestorage.app",
+  storageBucket: "tattootimev2.appspot.com",
   messagingSenderId: "301515167164",
   appId: "1:301515167164:web:fbd3900f81edf208a607b9",
   measurementId: "G-Q8X9G8F08P"
