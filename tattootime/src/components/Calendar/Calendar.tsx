@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar/index.js';
+import { DateCalendar } from '@mui/x-date-pickers';
 import { Paper, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, List, ListItem, ListItemText, Chip, IconButton, Alert, Snackbar } from '@mui/material';
-import { Theme } from '@mui/material/styles';
+import { Theme } from '@mui/material/styles/index.js';
 import { de } from 'date-fns/locale';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { Add as AddIcon } from '@mui/icons-material';
