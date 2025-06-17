@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Typography, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { db } from '../../services/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Appointment } from '../../types';
 
 interface AdminAppointmentsProps {
@@ -22,14 +22,14 @@ const AdminAppointments: React.FC<AdminAppointmentsProps> = ({ currentUserId }) 
 
   const appointmentsCollectionRef = collection(db, 'appointments');
 
-  const getAppointments = async () => {
+  const getAppointments = useCallback(async () => {
     const data = await getDocs(appointmentsCollectionRef);
     setAppointments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })) as Appointment[]);
-  };
+  }, [appointmentsCollectionRef]);
 
   useEffect(() => {
     getAppointments();
-  }, []);
+  }, [getAppointments]);
 
   const handleOpen = (appointment?: Appointment) => {
     setOpen(true);
