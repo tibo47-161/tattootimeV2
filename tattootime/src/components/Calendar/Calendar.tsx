@@ -24,7 +24,6 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
   const [selectedAppointments, setSelectedAppointments] = useState<Appointment[]>([]);
   const [availableSlots, setAvailableSlots] = useState<Slot[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newAppointmentDialogOpen, setNewAppointmentDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -86,14 +85,6 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
-  };
-
-  const handleNewAppointment = () => {
-    setNewAppointmentDialogOpen(true);
-  };
-
-  const handleCloseNewAppointmentDialog = () => {
-    setNewAppointmentDialogOpen(false);
   };
 
   const handleCloseError = () => {
@@ -225,7 +216,6 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
           Termine am {selectedDate ? format(selectedDate, 'dd.MM.yyyy') : ''}
           {isAdmin && (
             <IconButton
-              onClick={handleNewAppointment}
               sx={{ position: 'absolute', right: 8, top: 8 }}
             >
               <AddIcon />
