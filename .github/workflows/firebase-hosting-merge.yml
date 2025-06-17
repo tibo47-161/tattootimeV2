@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci && npm run build
+      - name: List files in tattootime directory
+        run: ls -la tattootime
+        working-directory: .
+      - run: npm install && npm run build
         working-directory: tattootime
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
