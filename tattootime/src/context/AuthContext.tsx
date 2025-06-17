@@ -25,15 +25,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user: FirebaseUser | null) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user: FirebaseUser | null) => {
       if (user) {
-        // Hier können Sie zusätzliche Benutzerdaten aus Firestore abrufen
-        setCurrentUser({
-          id: user.uid,
-          email: user.email || '',
-          role: 'user', // Standardrolle, sollte aus Firestore kommen
-          name: user.displayName || '',
-        });
+        try {
+          const idTokenResult = await user.getIdTokenResult(true); // Force refresh to get latest claims
+          setCurrentUser({
+            id: user.uid,
+            email: user.email || '',
+            role: (idTokenResult.claims.admin ? 'admin' : 'user'),
+            name: user.displayName || '',
+          });
+        } catch (error) {
+          console.error("Error fetching user ID token result:", error);
+          setCurrentUser({
+            id: user.uid,
+            email: user.email || '',
+            role: 'user', // Fallback to user role on error
+            name: user.displayName || '',
+          });
+        }
       } else {
         setCurrentUser(null);
       }

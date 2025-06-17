@@ -3,6 +3,7 @@ import { Container, Typography, Box, Button, Grid, Paper } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AdminAppointments from '../components/Admin/AdminAppointments';
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout, loading } = useAuth();
@@ -23,8 +24,28 @@ const Dashboard: React.FC = () => {
     try {
       await logout();
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fehler beim Abmelden:", error);
+    }
+  };
+
+  // New function to call addAdminRole
+  const handleSetAdminRole = async () => {
+    if (!currentUser || !currentUser.email) {
+      console.error("Cannot set admin role: user not logged in or email missing.");
+      return;
+    }
+    try {
+      const functions = getFunctions();
+      const addAdminRoleCallable = httpsCallable(functions, 'addAdminRole');
+      const result = await addAdminRoleCallable({ email: currentUser.email });
+      console.log('Admin role set successfully:', result.data);
+      alert(`Admin role set successfully for ${currentUser.email}. Please log out and log back in.`);
+      // Force re-authentication to refresh claims
+      await logout(); // Trigger logout to force re-authentication
+    } catch (error: any) {
+      console.error('Error setting admin role:', error);
+      alert(`Failed to set admin role: ${error.message}`);
     }
   };
 
@@ -84,7 +105,17 @@ const Dashboard: React.FC = () => {
               </Typography>
               <Box sx={{ mt: 2 }}>
                 <Typography>Hier kommt der normale Benutzer-Dashboard-Inhalt hin.</Typography>
-                {/* Beispiel für Benutzer-spezifische Termine oder Informationen */}
+                {/* Temporary button to set admin role */}
+                {currentUser && currentUser.email === 'tobi196183@gmail.com' && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={handleSetAdminRole}
+                    sx={{ mt: 2 }}
+                  >
+                    Set Admin Role for myself
+                  </Button>
+                )}
               </Box>
             </Paper>
           </Grid>

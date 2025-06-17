@@ -7,8 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 
 admin.initializeApp();
@@ -16,29 +15,34 @@ admin.initializeApp();
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
-export const helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
+export const helloWorld = functions.https.onRequest((request, response) => {
+  functions.logger.info("Hello logs!", { structuredData: true });
   response.send("Hello from Firebase!");
 });
 
-export const addAdminRole = onRequest(async (request, response) => {
-  const email = request.query.email as string;
+export const addAdminRole = functions.https.onCall(
+  async (data: { email?: string }, context: functions.https.CallableContext) => {
+    if (!context.auth || !context.auth.token || !context.auth.token.admin) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Nur Admins dürfen Adminrechte vergeben."
+      );
+    }
 
-  if (!email) {
-    response.status(400).send("Email parameter is required.");
-    return;
+    const email = data.email;
+
+    if (!email) {
+      throw new functions.https.HttpsError("invalid-argument", "Email is required.");
+    }
+
+    try {
+      const user = await admin.auth().getUserByEmail(email);
+      await admin.auth().setCustomUserClaims(user.uid, { admin: true });
+      functions.logger.info(`Adminrechte gesetzt für ${email}`);
+      return { message: `Adminrechte gesetzt für ${email}` };
+    } catch (error: any) {
+      functions.logger.error("Fehler beim Setzen der Adminrechte:", error);
+      throw new functions.https.HttpsError("internal", error.message, error);
+    }
   }
-
-  try {
-    const user = await admin.auth().getUserByEmail(email);
-    await admin.auth().setCustomUserClaims(user.uid, {admin: true});
-
-    logger.info(`Admin role assigned to ${email}`);
-    response.status(200).send(`Success! ${email} has been made an admin.`);
-    return;
-  } catch (error) {
-    logger.error("Error adding admin role:", error);
-    response.status(500).send("Failed to add admin role.");
-    return;
-  }
-});
+);
