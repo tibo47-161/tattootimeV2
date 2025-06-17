@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { TextField, Button, Container, Typography, Box } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Link } from '@mui/material';
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre Eingaben.');
+      setError('');
+      setLoading(true);
+      await register(email, password);
+      navigate('/dashboard'); // Oder eine Bestätigungsseite
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -31,7 +36,7 @@ const Login: React.FC = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Anmelden
+          Registrieren
         </Typography>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <TextField
@@ -54,7 +59,7 @@ const Login: React.FC = () => {
             label="Passwort"
             type="password"
             id="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -68,22 +73,17 @@ const Login: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
+            disabled={loading}
           >
-            Anmelden
+            Registrieren
           </Button>
-          <Button
-            type="button"
-            fullWidth
-            variant="text"
-            sx={{ mt: 1, mb: 2 }}
-            onClick={() => navigate('/register')}
-          >
-            Noch kein Konto? Registrieren
-          </Button>
+          <Link href="/login" variant="body2">
+            {"Du hast bereits ein Konto? Anmelden"}
+          </Link>
         </Box>
       </Box>
     </Container>
   );
 };
 
-export default Login; 
+export default Register; 
