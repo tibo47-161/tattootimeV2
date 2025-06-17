@@ -23,6 +23,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Rules for slots collection
+    match /slots/{slotId} {
+      // All authenticated users can read available slots
+      allow read: if request.auth != null;
+      // Only admins can create or delete slots
+      allow create, delete: if isAdmin();
+      // Users can update slots only if they're booking it (changing isBooked to true)
+      allow update: if request.auth != null &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['isBooked', 'bookedByUserId', 'bookedByUserName', 'bookedByEmail']) &&
+        request.resource.data.isBooked == true &&
+        resource.data.isBooked == false;
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

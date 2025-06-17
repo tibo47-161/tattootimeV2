@@ -18,4 +18,17 @@ export interface Appointment {
   clientEmail?: string;
   colorCode?: string; // Hex color code or a predefined string like 'red', 'blue'
   notes?: string;
+}
+
+export interface Slot {
+  id?: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  duration?: number; // in minutes
+  isBooked: boolean;
+  bookedByUserId?: string;
+  bookedByUserName?: string;
+  bookedByEmail?: string;
+  serviceType: 'Tattoo' | 'Jugendhilfe' | 'Arzt' | 'Privat' | 'Blocked';
 } 
