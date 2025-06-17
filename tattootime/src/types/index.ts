@@ -12,4 +12,10 @@ export interface Appointment {
   clientName: string;
   service: string;
   userId: string;
+  serviceType?: 'Tattoo' | 'Jugendhilfe' | 'Arzt' | 'Privat' | 'Blocked';
+  tattooStyle?: string;
+  bodyPart?: string;
+  clientEmail?: string;
+  colorCode?: string; // Hex color code or a predefined string like 'red', 'blue'
+  notes?: string;
 } 
