@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AdminAppointments from '../components/Admin/AdminAppointments';
 import { getFunctions, httpsCallable } from "firebase/functions";
+import Calendar from '../components/Calendar/Calendar';
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout, loading } = useAuth();
@@ -73,7 +74,16 @@ const Dashboard: React.FC = () => {
             </Paper>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h5" component="h2" gutterBottom>
+                Termin Kalender
+              </Typography>
+              <Calendar isAdmin={currentUser?.role === 'admin'} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h5" component="h2" gutterBottom>
                 Admin-Bereich: Terminverwaltung
@@ -98,7 +108,17 @@ const Dashboard: React.FC = () => {
               </Button>
             </Paper>
           </Grid>
-          <Grid item xs={12}>
+          
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h5" component="h2" gutterBottom>
+                Termin Kalender
+              </Typography>
+              <Calendar isAdmin={currentUser?.role === 'admin'} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
               <Typography variant="h5" component="h2" gutterBottom>
                 Ihr Dashboard
