@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyArRdxJlK5JWL6VFkbSedAUIxspLp41PtI",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: "tattootimev2.firebaseapp.com",
   projectId: "tattootimev2",
   storageBucket: "tattootimev2.firebasestorage.app",
