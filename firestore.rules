@@ -44,7 +44,7 @@ service cloud.firestore {
 
     // Rules for the 'mail' collection (Firebase Extension "Trigger Email")
     match /mail/{document} {
-      allow create: if true;
+      allow create: if request.auth != null;
     }
   }
 }
