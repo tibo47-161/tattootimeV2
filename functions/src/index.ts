@@ -61,6 +61,47 @@ export const addAdminRole = functions.https.onCall(
   }
 );
 
+export const removeAdminRole = functions.https.onCall(
+  async (
+    data: { email?: string },
+    context: functions.https.CallableContext
+  ): Promise<{ message: string }> => {
+    if (
+      !context.auth ||
+      !context.auth.token ||
+      !context.auth.token.admin
+    ) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Nur Admins dürfen Adminrechte entfernen."
+      );
+    }
+
+    const email = data.email;
+
+    if (!email) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Email is required."
+      );
+    }
+
+    try {
+      const user = await admin.auth().getUserByEmail(email);
+      await admin.auth().setCustomUserClaims(user.uid, {admin: false});
+      functions.logger.info(`Adminrechte entfernt für ${email}`);
+      return {message: `Adminrechte entfernt für ${email}`};
+    } catch (error: unknown) {
+      functions.logger.error("Fehler beim Entfernen der Adminrechte:", error);
+      throw new functions.https.HttpsError(
+        "internal",
+        error instanceof Error ? error.message : "Unbekannter Fehler",
+        error
+      );
+    }
+  }
+);
+
 export const bookSlot = functions.https.onCall(
   async (
     data: {
@@ -1049,3 +1090,205 @@ interface Pricing {
   depositAmount: number;
   depositPaid: boolean;
 }
+
+export const makeUserAdmin = functions.https.onRequest(
+  async (request, response) => {
+    // CORS Headers für Browser-Anfragen
+    response.set("Access-Control-Allow-Origin", "*");
+    response.set("Access-Control-Allow-Methods", "GET, POST");
+    response.set("Access-Control-Allow-Headers", "Content-Type");
+
+    // OPTIONS Request für CORS Preflight
+    if (request.method === "OPTIONS") {
+      response.status(204).send("");
+      return;
+    }
+
+    // Nur POST und GET Requests erlauben
+    if (request.method !== "POST" && request.method !== "GET") {
+      response.status(405).json({
+        error: "Method not allowed. Use POST or GET.",
+        success: false
+      });
+      return;
+    }
+
+    try {
+      let email: string | undefined;
+
+      // Email aus verschiedenen Quellen extrahieren
+      if (request.method === "POST") {
+        // POST: Email aus Body oder Query-Parameter
+        email = request.body?.email || request.query?.email as string;
+      } else {
+        // GET: Email aus Query-Parameter
+        email = request.query?.email as string;
+      }
+
+      // Email validieren
+      if (!email) {
+        response.status(400).json({
+          error: "Email parameter is required. Use ?email=user@example.com or send in POST body.",
+          success: false,
+          usage: {
+            get: "GET /makeUserAdmin?email=user@example.com",
+            post: "POST /makeUserAdmin with body: {\"email\": \"user@example.com\"}"
+          }
+        });
+        return;
+      }
+
+      // Email-Format validieren
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        response.status(400).json({
+          error: "Invalid email format.",
+          success: false
+        });
+        return;
+      }
+
+      // Benutzer in Firebase Auth finden
+      const user = await admin.auth().getUserByEmail(email);
+      
+      // Admin-Rechte setzen
+      await admin.auth().setCustomUserClaims(user.uid, {admin: true});
+      
+      functions.logger.info(`Adminrechte gesetzt für ${email} via HTTP request`);
+      
+      response.status(200).json({
+        success: true,
+        message: `Adminrechte erfolgreich gesetzt für ${email}`,
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+        },
+      });
+
+    } catch (error: unknown) {
+      functions.logger.error("Fehler beim Setzen der Adminrechte via HTTP:", error);
+      
+      let errorMessage = "Unbekannter Fehler";
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes("No user record found")) {
+          errorMessage = `Benutzer mit E-Mail ${request.body?.email || request.query?.email} nicht gefunden. Der Benutzer muss sich zuerst registrieren.`;
+          statusCode = 404;
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Ungültige E-Mail-Adresse.";
+          statusCode = 400;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      response.status(statusCode).json({
+        error: errorMessage,
+        success: false,
+      });
+    }
+  }
+);
+
+export const removeUserAdmin = functions.https.onRequest(
+  async (request, response) => {
+    // CORS Headers für Browser-Anfragen
+    response.set("Access-Control-Allow-Origin", "*");
+    response.set("Access-Control-Allow-Methods", "GET, POST");
+    response.set("Access-Control-Allow-Headers", "Content-Type");
+
+    // OPTIONS Request für CORS Preflight
+    if (request.method === "OPTIONS") {
+      response.status(204).send("");
+      return;
+    }
+
+    // Nur POST und GET Requests erlauben
+    if (request.method !== "POST" && request.method !== "GET") {
+      response.status(405).json({
+        error: "Method not allowed. Use POST or GET.",
+        success: false,
+      });
+      return;
+    }
+
+    try {
+      let email: string | undefined;
+
+      // Email aus verschiedenen Quellen extrahieren
+      if (request.method === "POST") {
+        // POST: Email aus Body oder Query-Parameter
+        email = request.body?.email || request.query?.email as string;
+      } else {
+        // GET: Email aus Query-Parameter
+        email = request.query?.email as string;
+      }
+
+      // Email validieren
+      if (!email) {
+        response.status(400).json({
+          error: "Email parameter is required. Use ?email=user@example.com or send in POST body.",
+          success: false,
+          usage: {
+            get: "GET /removeUserAdmin?email=user@example.com",
+            post: "POST /removeUserAdmin with body: {\"email\": \"user@example.com\"}",
+          },
+        });
+        return;
+      }
+
+      // Email-Format validieren
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        response.status(400).json({
+          error: "Invalid email format.",
+          success: false,
+        });
+        return;
+      }
+
+      // Benutzer in Firebase Auth finden
+      const user = await admin.auth().getUserByEmail(email);
+      
+      // Admin-Rechte entfernen
+      await admin.auth().setCustomUserClaims(user.uid, {admin: false});
+      
+      functions.logger.info(`Adminrechte entfernt für ${email} via HTTP request`);
+      
+      response.status(200).json({
+        success: true,
+        message: `Adminrechte erfolgreich entfernt für ${email}`,
+        user: {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+        },
+      });
+
+    } catch (error: unknown) {
+      functions.logger.error("Fehler beim Entfernen der Adminrechte via HTTP:", error);
+      
+      let errorMessage = "Unbekannter Fehler";
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes("No user record found")) {
+          errorMessage = `Benutzer mit E-Mail ${request.body?.email || request.query?.email} nicht gefunden.`;
+          statusCode = 404;
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Ungültige E-Mail-Adresse.";
+          statusCode = 400;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      response.status(statusCode).json({
+        error: errorMessage,
+        success: false,
+      });
+    }
+  }
+);
