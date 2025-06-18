@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Material, Appointment } from '../../types';
+import BackToDashboard from '../Navigation/BackToDashboard';
 
 interface MaterialManagementProps {
   appointment?: Appointment | null;
@@ -209,7 +210,11 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
                   />
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body2">
+                  <Typography 
+                    variant="body2" 
+                    color={stockStatus.color}
+                    fontWeight="bold"
+                  >
                     {material.currentStock} {material.unit}
                   </Typography>
                 </TableCell>
@@ -236,7 +241,7 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
                   />
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body2" color="primary">
+                  <Typography variant="body2" fontWeight="bold">
                     {materialCost.toFixed(2)}€
                   </Typography>
                 </TableCell>
@@ -257,16 +262,12 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
   );
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Materialverwaltung</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-        >
-          Material hinzufügen
-        </Button>
-      </Box>
+    <Box sx={{ p: 3 }}>
+      <BackToDashboard />
+      
+      <Typography variant="h4" gutterBottom>
+        Materialverwaltung
+      </Typography>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -280,91 +281,42 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
         </Alert>
       )}
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          {renderMaterialTable()}
-
-          {selectedMaterials.length > 0 && (
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
-                    <Typography variant="h6" gutterBottom>
-                      Materialverbrauch erfassen
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedMaterials.length} Materialien ausgewählt
-                    </Typography>
-                    <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Materialverbrauch erfassen
+              </Typography>
+              
+              {loading ? (
+                <Box display="flex" justifyContent="center" p={3}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <>
+                  {renderMaterialTable()}
+                  
+                  <Box sx={{ mt: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Typography variant="h6">
                       Gesamtkosten: {calculateTotalCost().toFixed(2)}€
                     </Typography>
+                    
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleMaterialUsage}
+                      disabled={selectedMaterials.length === 0 || loading}
+                    >
+                      Materialverbrauch erfassen
+                    </Button>
                   </Box>
-                  <Button
-                    variant="contained"
-                    onClick={handleMaterialUsage}
-                    disabled={loading}
-                    startIcon={loading ? <CircularProgress size={20} /> : <InventoryIcon />}
-                  >
-                    Verbrauch erfassen
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          )}
-
-          <Grid container spacing={3} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Lagerstand-Übersicht
-                  </Typography>
-                  <Typography variant="h4" color="primary">
-                    {materials.length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Aktive Materialien
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Niedriger Bestand
-                  </Typography>
-                  <Typography variant="h4" color="error">
-                    {materials.filter(m => m.currentStock <= m.minimumStock).length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Benötigen Nachbestellung
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Gesamtwert
-                  </Typography>
-                  <Typography variant="h4" color="primary">
-                    {materials.reduce((total, m) => total + (m.currentStock * m.costPerUnit), 0).toFixed(0)}€
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Lagerwert
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </>
-      )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };

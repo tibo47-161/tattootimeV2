@@ -40,6 +40,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { CustomerHistory as CustomerHistoryType } from '../../types';
+import BackToDashboard from '../Navigation/BackToDashboard';
 
 interface CustomerHistoryProps {
   userId?: string;
@@ -362,6 +363,8 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({
 
   return (
     <Box>
+      <BackToDashboard />
+      
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5">Kundenhistorie</Typography>
         <Button

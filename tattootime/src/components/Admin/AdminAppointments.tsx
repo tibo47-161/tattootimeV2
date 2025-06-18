@@ -4,6 +4,7 @@ import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { db } from '../../services/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { Appointment } from '../../types';
+import BackToDashboard from '../Navigation/BackToDashboard';
 
 interface AdminAppointmentsProps {
   currentUserId: string;
@@ -216,40 +217,62 @@ const AdminAppointments: React.FC<AdminAppointmentsProps> = ({ currentUserId, is
     getAppointments();
   };
 
+  if (!isAdmin) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <BackToDashboard />
+        <Typography variant="h6" color="error">
+          Sie haben keine Berechtigung, diese Seite zu sehen.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Box>
-      <Typography variant="h6" gutterBottom>Alle Termine</Typography>
-      <Button variant="contained" color="primary" onClick={() => handleOpen()} sx={{ mb: 2 }}>
+    <Box sx={{ p: 3 }}>
+      <BackToDashboard />
+      
+      <Typography variant="h4" gutterBottom>
+        Terminverwaltung
+      </Typography>
+
+      <Button
+        variant="contained"
+        onClick={() => handleOpen()}
+        sx={{ mb: 2 }}
+      >
         Neuen Termin hinzufügen
       </Button>
 
       <List>
         {appointments.map((appointment) => (
-          <ListItem key={appointment.id} divider>
+          <ListItem
+            key={appointment.id}
+            sx={{
+              border: `2px solid ${appointment.colorCode || "#ccc"}`,
+              borderRadius: 1,
+              mb: 1,
+              backgroundColor: `${appointment.colorCode || "#ccc"}20`,
+            }}
+          >
             <ListItemText
-              primary={
-                <Box display="flex" alignItems="center">
-                  <Box sx={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: '50%',
-                    backgroundColor: appointment.colorCode || 'transparent',
-                    mr: 1,
-                  }} />
-                  {`Datum: ${appointment.date}, Uhrzeit: ${appointment.time}`}
-                </Box>
-              }
-              secondary={`Kunde: ${appointment.clientName}, Service: ${appointment.service}${appointment.serviceType ? `, Typ: ${appointment.serviceType}` : ''}`}
+              primary={`${appointment.clientName} - ${appointment.service}`}
+              secondary={`${appointment.date} um ${appointment.time} | ${appointment.serviceType || "Kein Typ"}`}
             />
             <ListItemSecondaryAction>
-              <IconButton edge="end" aria-label="edit" onClick={() => handleOpen(appointment)}>
+              <IconButton
+                edge="end"
+                aria-label="edit"
+                onClick={() => handleOpen(appointment)}
+                sx={{ mr: 1 }}
+              >
                 <EditIcon />
               </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => {
-                if (appointment.id) {
-                  deleteAppointment(appointment.id);
-                }
-              }}>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={() => appointment.id && deleteAppointment(appointment.id)}
+              >
                 <DeleteIcon />
               </IconButton>
             </ListItemSecondaryAction>
@@ -257,147 +280,99 @@ const AdminAppointments: React.FC<AdminAppointmentsProps> = ({ currentUserId, is
         ))}
       </List>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{currentAppointment ? 'Termin bearbeiten' : 'Neuen Termin hinzufügen'}</DialogTitle>
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+        <DialogTitle>
+          {currentAppointment ? "Termin bearbeiten" : "Neuen Termin hinzufügen"}
+        </DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="date"
-            label="Datum"
-            type="date"
-            fullWidth
-            variant="outlined"
-            value={formData.date}
-            onChange={handleChange}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            margin="dense"
-            name="time"
-            label="Uhrzeit"
-            type="time"
-            fullWidth
-            variant="outlined"
-            value={formData.time}
-            onChange={handleChange}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            margin="dense"
-            name="clientName"
-            label="Kundenname"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={formData.clientName}
-            onChange={handleChange}
-            sx={{ mt: 2 }}
-          />
-          <TextField
-            margin="dense"
-            name="service"
-            label="Service"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={formData.service}
-            onChange={handleChange}
-            sx={{ mt: 2 }}
-          />
-          <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
-            <InputLabel id="service-type-label">Terminart</InputLabel>
-            <Select
-              labelId="service-type-label"
-              id="serviceType"
-              name="serviceType"
-              value={formData.serviceType || ''}
-              label="Terminart"
-              onChange={handleServiceTypeChange}
-            >
-              <MenuItem value="Tattoo">🔴 Tattoo-Termin</MenuItem>
-              <MenuItem value="Jugendhilfe">🔵 Jugendhilfe-Arbeit</MenuItem>
-              <MenuItem value="Arzt">🟢 Arzt</MenuItem>
-              <MenuItem value="Privat">🟡 Privat / Freizeit</MenuItem>
-              <MenuItem value="Blocked">⚫ Blockiert / Urlaub</MenuItem>
-            </Select>
-          </FormControl>
-
-          {formData.serviceType === 'Tattoo' && (
-            <>
-              <TextField
-                margin="dense"
-                name="tattooStyle"
-                label="Tattoo-Stil"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={formData.tattooStyle}
-                onChange={handleChange}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                name="bodyPart"
-                label="Körperstelle"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={formData.bodyPart}
-                onChange={handleChange}
-                sx={{ mt: 2 }}
-              />
-            </>
-          )}
-
-          {formData.serviceType !== 'Blocked' && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField
-              margin="dense"
-              name="clientEmail"
-              label="Kunden E-Mail"
-              type="email"
+              name="clientName"
+              label="Kundenname"
+              value={formData.clientName}
+              onChange={handleChange}
               fullWidth
-              variant="outlined"
+            />
+            <TextField
+              name="clientEmail"
+              label="E-Mail"
+              type="email"
               value={formData.clientEmail}
               onChange={handleChange}
-              sx={{ mt: 2 }}
-            />
-          )}
-
-          <TextField
-            margin="dense"
-            name="notes"
-            label="Notizen"
-            type="text"
-            fullWidth
-            multiline
-            rows={3}
-            variant="outlined"
-            value={formData.notes}
-            onChange={handleChange}
-            sx={{ mt: 2 }}
-          />
-
-          {formData.serviceType && (
-            <TextField
-              margin="dense"
-              name="colorCode"
-              label="Farbe"
-              type="text"
               fullWidth
-              variant="outlined"
-              value={formData.colorCode || colorMap[formData.serviceType] || ''}
-              onChange={handleChange}
-              sx={{ mt: 2 }}
-              disabled // This field is now auto-filled based on serviceType
             />
-          )}
-
+            <TextField
+              name="service"
+              label="Dienstleistung"
+              value={formData.service}
+              onChange={handleChange}
+              fullWidth
+            />
+            <FormControl fullWidth>
+              <InputLabel>Service-Typ</InputLabel>
+              <Select
+                value={formData.serviceType || ""}
+                onChange={handleServiceTypeChange}
+                label="Service-Typ"
+              >
+                <MenuItem value="Tattoo">Tattoo</MenuItem>
+                <MenuItem value="Jugendhilfe">Jugendhilfe</MenuItem>
+                <MenuItem value="Arzt">Arzt</MenuItem>
+                <MenuItem value="Privat">Privat</MenuItem>
+                <MenuItem value="Blocked">Blocked</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              name="date"
+              label="Datum"
+              type="date"
+              value={formData.date}
+              onChange={handleChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              name="time"
+              label="Uhrzeit"
+              type="time"
+              value={formData.time}
+              onChange={handleChange}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+            />
+            {formData.serviceType === "Tattoo" && (
+              <>
+                <TextField
+                  name="tattooStyle"
+                  label="Tattoo-Stil"
+                  value={formData.tattooStyle}
+                  onChange={handleChange}
+                  fullWidth
+                />
+                <TextField
+                  name="bodyPart"
+                  label="Körperteil"
+                  value={formData.bodyPart}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </>
+            )}
+            <TextField
+              name="notes"
+              label="Notizen"
+              multiline
+              rows={3}
+              value={formData.notes}
+              onChange={handleChange}
+              fullWidth
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Abbrechen</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            {currentAppointment ? 'Speichern' : 'Hinzufügen'}
+          <Button onClick={handleSubmit} variant="contained">
+            {currentAppointment ? "Aktualisieren" : "Hinzufügen"}
           </Button>
         </DialogActions>
       </Dialog>

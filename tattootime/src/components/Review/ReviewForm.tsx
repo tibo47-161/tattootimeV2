@@ -21,6 +21,7 @@ import { Star as StarIcon } from '@mui/icons-material';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../context/AuthContext';
 import { Appointment } from '../../types';
+import { useNavigate } from "react-router-dom";
 
 interface ReviewFormProps {
   open: boolean;
@@ -38,6 +39,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   const { currentUser } = useAuth();
   const functions = getFunctions();
   const createReviewCallable = httpsCallable(functions, 'createReview');
+  const navigate = useNavigate();
 
   // Form state
   const [rating, setRating] = useState<number>(0);
@@ -280,7 +282,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button
+          onClick={() => navigate("/dashboard")}
+          color="inherit"
+        >
           Abbrechen
         </Button>
         <Button

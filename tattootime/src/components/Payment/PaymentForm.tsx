@@ -18,6 +18,7 @@ import {
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../context/AuthContext';
 import { Appointment } from '../../types';
+import { useNavigate } from "react-router-dom";
 
 interface PaymentFormProps {
   open: boolean;
@@ -42,6 +43,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const { currentUser } = useAuth();
   const functions = getFunctions();
   const processPaymentCallable = httpsCallable(functions, 'processPayment');
+  const navigate = useNavigate();
 
   // Form state
   const [paymentMethod, setPaymentMethod] = useState<string>('');
@@ -290,7 +292,10 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button
+          onClick={() => navigate("/dashboard")}
+          color="inherit"
+        >
           Abbrechen
         </Button>
         <Button

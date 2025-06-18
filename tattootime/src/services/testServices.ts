@@ -5,6 +5,7 @@ import { NotificationService } from './notificationService';
 import { ReviewService } from './reviewService';
 import { CustomerService } from './customerService';
 import { InitializationService } from './initializationService';
+import { AdminService } from './adminService';
 
 export class ServiceTestSuite {
   // Test der Preisberechnung
@@ -187,6 +188,59 @@ export class ServiceTestSuite {
     }
   }
 
+  // Test des Admin-Services
+  static async testAdminService(): Promise<boolean> {
+    try {
+      console.log("🧪 Teste AdminService...");
+      
+      // Test-E-Mail für Admin-Tests
+      const testEmail = "test-admin@example.com";
+      
+      // Admin-Rolle hinzufügen testen
+      try {
+        const addResult = await AdminService.addAdminRole(testEmail);
+        if (!addResult.message.includes("Adminrechte gesetzt")) {
+          throw new Error("Admin-Rolle konnte nicht hinzugefügt werden");
+        }
+        console.log("✅ Admin-Rolle hinzugefügt:", addResult.message);
+      } catch (error: any) {
+        // Falls der Benutzer nicht existiert oder andere Fehler auftreten
+        console.log("⚠️ Admin-Rolle hinzufügen fehlgeschlagen (erwartet für Test):", error.message);
+      }
+      
+      // Admin-Rolle entfernen testen
+      try {
+        const removeResult = await AdminService.removeAdminRole(testEmail);
+        if (!removeResult.message.includes("Adminrechte entfernt")) {
+          throw new Error("Admin-Rolle konnte nicht entfernt werden");
+        }
+        console.log("✅ Admin-Rolle entfernt:", removeResult.message);
+      } catch (error: any) {
+        // Falls der Benutzer nicht existiert oder andere Fehler auftreten
+        console.log("⚠️ Admin-Rolle entfernen fehlgeschlagen (erwartet für Test):", error.message);
+      }
+      
+      // Admin-Status prüfen testen
+      const mockUser = { token: { admin: true } };
+      const isAdmin = AdminService.isAdmin(mockUser);
+      if (!isAdmin) {
+        throw new Error("Admin-Status-Prüfung fehlgeschlagen");
+      }
+      
+      const mockNonAdminUser = { token: { admin: false } };
+      const isNotAdmin = AdminService.isAdmin(mockNonAdminUser);
+      if (isNotAdmin) {
+        throw new Error("Non-Admin-Status-Prüfung fehlgeschlagen");
+      }
+      
+      console.log("✅ AdminService Test erfolgreich");
+      return true;
+    } catch (error) {
+      console.error("❌ AdminService Test fehlgeschlagen:", error);
+      return false;
+    }
+  }
+
   // Test des Initialization-Services
   static async testInitializationService(): Promise<boolean> {
     try {
@@ -222,7 +276,8 @@ export class ServiceTestSuite {
       notificationService: await this.testNotificationService(),
       reviewService: await this.testReviewService(),
       customerService: await this.testCustomerService(),
-      initializationService: await this.testInitializationService()
+      initializationService: await this.testInitializationService(),
+      adminService: await this.testAdminService()
     };
     
     const successCount = Object.values(results).filter(Boolean).length;

@@ -1,16 +1,18 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Register from './pages/Register';
-import { ThemeProvider, createTheme } from '@mui/material';
-import { blue, grey } from '@mui/material/colors';
-import './App.css';
-import ReviewForm from './components/Review/ReviewForm';
-import MaterialManagement from './components/Admin/MaterialManagement';
-import PaymentForm from './components/Payment/PaymentForm';
-import CustomerHistory from './components/Customer/CustomerHistory';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
+import { ThemeProvider, createTheme } from "@mui/material";
+import { blue, grey } from "@mui/material/colors";
+import "./App.css";
+import ReviewForm from "./components/Review/ReviewForm";
+import MaterialManagement from "./components/Admin/MaterialManagement";
+import AdminManagement from "./components/Admin/AdminManagement";
+import AdminAppointments from "./components/Admin/AdminAppointments";
+import PaymentForm from "./components/Payment/PaymentForm";
+import CustomerHistory from "./components/Customer/CustomerHistory";
 
 const theme = createTheme({
   palette: {
@@ -38,8 +40,8 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 const App: React.FC = () => {
-  console.log('App component loaded and rendering');
-  console.log('Current URL:', window.location.pathname);
+  console.log("App component loaded and rendering");
+  console.log("Current URL:", window.location.pathname);
   
   return (
     <ThemeProvider theme={theme}>
@@ -65,13 +67,13 @@ const App: React.FC = () => {
                     open={true}
                     onClose={() => { /* Dummy */ }}
                     appointment={{
-                      id: 'dummy',
-                      date: '2025-06-18',
-                      time: '17:00',
-                      clientName: 'Max Mustermann',
-                      service: 'Test-Tattoo',
-                      userId: 'dummy-user',
-                      serviceType: 'Tattoo',
+                      id: "dummy",
+                      date: "2025-06-18",
+                      time: "17:00",
+                      clientName: "Max Mustermann",
+                      service: "Test-Tattoo",
+                      userId: "dummy-user",
+                      serviceType: "Tattoo",
                     }}
                     onReviewSuccess={() => { /* Dummy */ }}
                   />
@@ -87,6 +89,22 @@ const App: React.FC = () => {
               }
             />
             <Route
+              path="/admin-management"
+              element={
+                <PrivateRoute>
+                  <AdminManagement />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin-appointments"
+              element={
+                <PrivateRoute>
+                  <AdminAppointments currentUserId="admin" isAdmin={true} />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/payment"
               element={
                 <PrivateRoute>
@@ -94,13 +112,13 @@ const App: React.FC = () => {
                     open={true}
                     onClose={() => { /* Dummy */ }}
                     appointment={{
-                      id: 'dummy',
-                      date: '2025-06-18',
-                      time: '17:00',
-                      clientName: 'Max Mustermann',
-                      service: 'Test-Tattoo',
-                      userId: 'dummy-user',
-                      serviceType: 'Tattoo',
+                      id: "dummy",
+                      date: "2025-06-18",
+                      time: "17:00",
+                      clientName: "Max Mustermann",
+                      service: "Test-Tattoo",
+                      userId: "dummy-user",
+                      serviceType: "Tattoo",
                     }}
                     onPaymentSuccess={() => { /* Dummy */ }}
                   />

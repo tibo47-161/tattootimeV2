@@ -93,6 +93,26 @@ const Dashboard: React.FC = () => {
             </Paper>
           </Grid>
 
+          {/* Admin Navigation */}
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h5" component="h2" gutterBottom>
+                Admin-Verwaltung
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <Button component={Link} to="/admin-appointments" variant="contained" color="primary">
+                  Terminverwaltung
+                </Button>
+                <Button component={Link} to="/admin-management" variant="contained" color="secondary">
+                  Admin-Rechte verwalten
+                </Button>
+                <Button component={Link} to="/material-management" variant="outlined">
+                  Materialverwaltung
+                </Button>
+              </Box>
+            </Paper>
+          </Grid>
+
           {/* Erweiterte Features für Admins */}
           <Grid item xs={12} md={6}>
             <Paper sx={{ p: 3 }}>
@@ -100,9 +120,6 @@ const Dashboard: React.FC = () => {
                 Erweiterte Features
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                <Button component={Link} to="/material-management" variant="outlined">
-                  Materialverwaltung
-                </Button>
                 <Button component={Link} to="/payment" variant="outlined">
                   Zahlung
                 </Button>
