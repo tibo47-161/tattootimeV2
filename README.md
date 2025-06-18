@@ -1,91 +1,100 @@
-# Tattoo Termin App
+# TattooTime – Tattoo Termin App
 
-Dies ist eine Webanwendung zur Verwaltung von Tattoo-Terminen, entwickelt mit React und Firebase. Die Anwendung bietet einen Benutzer-Login, ein Dashboard und einen Admin-Bereich zur Terminverwaltung.
+**TattooTime** ist eine moderne Webanwendung zur Verwaltung von Tattoo-Terminen. Sie bietet eine intuitive Oberfläche für Kunden und einen leistungsstarken Admin-Bereich für Studio-Betreiber.
+
+---
 
 ## Funktionen
 
-*   **Benutzerauthentifizierung:** Anmelden und Abmelden von Benutzern über Firebase Authentication.
-*   **Dashboard:** Persönlicher Bereich für angemeldete Benutzer.
-*   **Admin-Bereich:** Spezieller Bereich für Administratoren zur Verwaltung aller Termine (Hinzufügen, Bearbeiten, Löschen).
+- **Benutzerauthentifizierung:** Registrierung, Login und Logout via Firebase Authentication.
+- **Dashboard:** Übersicht über eigene Termine, Kalenderansicht.
+- **Terminbuchung:** Kunden können freie Slots auswählen und buchen.
+- **Admin-Bereich:** Verwaltung aller Termine, Slots anlegen, bearbeiten, löschen, Terminarten (Tattoo, Jugendhilfe, Arzt, Privat, Blockiert).
+- **E-Mail-Benachrichtigung:** Automatische Bestätigungsmails an Kunden und Admins.
+- **Rollenverwaltung:** Admin-Rolle über Firestore oder Cloud Function steuerbar.
+
+---
 
 ## Technologien
 
-*   **Frontend:** React (mit TypeScript)
-*   **Styling:** Material-UI
-*   **Backend & Hosting:** Firebase (Authentication, Firestore, Hosting)
-*   **Routing:** React Router DOM
+- **Frontend:** React (TypeScript), Material-UI
+- **Backend:** Firebase (Authentication, Firestore, Functions, Hosting)
+- **Weitere:** React Router, E-Mail-Versand über Firestore-Trigger
 
-## Lokale Entwicklung
+---
 
-Um die Anwendung lokal auszuführen, folgen Sie diesen Schritten:
+## Installation & Entwicklung
 
-1.  **Repository klonen:**
-    ```bash
-    git clone https://github.com/tibo47-161/tattootimeV2.git
-    cd tattootimeV2
-    ```
+1. **Repository klonen**
+   ```bash
+   git clone https://github.com/tibo47-161/tattootimeV2.git
+   cd tattootimeV2
+   ```
 
-2.  **Abhängigkeiten installieren:**
-    Wechseln Sie in das `tattootime`-Verzeichnis und installieren Sie die Node.js-Abhängigkeiten:
-    ```bash
-    cd tattootime
-    npm install
-    ```
+2. **Abhängigkeiten installieren**
+   ```bash
+   cd tattootime
+   npm install
+   ```
 
-3.  **Firebase-Konfiguration:**
-    Stellen Sie sicher, dass Ihre Firebase-Projektkonfiguration in `tattootime/src/services/firebase.ts` korrekt ist.
+3. **Firebase-Konfiguration**
+   - Trage deine Firebase-Projekt-Daten in `tattootime/src/services/firebase.ts` ein.
 
-4.  **Anwendung starten:**
-    Im `tattootime`-Verzeichnis:
-    ```bash
-    npm start
-    ```
-    Die Anwendung sollte in Ihrem Browser unter [http://localhost:3000](http://localhost:3000) geöffnet werden.
+4. **Lokalen Server starten**
+   ```bash
+   npm start
+   ```
+   Die App läuft unter [http://localhost:3000](http://localhost:3000).
 
-## Deployment auf Firebase Hosting
+---
 
-Die Anwendung ist für das Deployment auf Firebase Hosting konfiguriert.
+## Deployment (Firebase Hosting)
 
-1.  **Firebase CLI installieren (falls nicht bereits geschehen):**
-    ```bash
-    npm install -g firebase-tools
-    ```
+1. **Firebase CLI installieren**
+   ```bash
+   npm install -g firebase-tools
+   ```
 
-2.  **Anmelden bei Firebase:**
-    ```bash
-    firebase login
-    ```
+2. **Login & Initialisierung**
+   ```bash
+   firebase login
+   firebase init
+   ```
+   Wähle „Hosting“ und verbinde das Projekt. Das `public`-Verzeichnis muss auf `tattootime/build` zeigen.
 
-3.  **Projekt initialisieren (falls nicht bereits geschehen):**
-    ```bash
-    firebase init
-    ```
-    Wählen Sie `Hosting` und verbinden Sie es mit Ihrem Firebase-Projekt `tattootimev2`. Stellen Sie sicher, dass das `public` Verzeichnis in `firebase.json` auf `tattootime/build` zeigt.
+3. **Build & Deploy**
+   ```bash
+   npm run build
+   firebase deploy --only hosting
+   ```
 
-4.  **Anwendung bauen:**
-    Im `tattootime`-Verzeichnis:
-    ```bash
-    npm run build
-    ```
+---
 
-5.  **Anwendung deployen:**
-    Im Hauptverzeichnis (`tattootimeV2`):
-    ```bash
-    firebase deploy --only hosting
-    ```
-    Ihre Anwendung wird dann unter der Hosting-URL Ihres Firebase-Projekts verfügbar sein (z.B. `https://tattootimev2.web.app`).
+## Admin-Rolle vergeben
 
-## Admin-Bereich Verwaltung
+- In der Firebase Console unter „Authentication“ den User suchen.
+- In Firestore (Collection `users`) das Feld `role` auf `admin` setzen.
+- Alternativ: Cloud Function `addAdminRole` nutzen.
 
-Der Admin-Bereich ist nur für Benutzer mit der Rolle `admin` zugänglich.
+---
 
-Um einen Benutzer zum Administrator zu machen:
+## API-Dokumentation (Kurzfassung)
 
-1.  Gehen Sie zur [Firebase Console](https://console.firebase.google.com/).
-2.  Wählen Sie Ihr Projekt `tattootimev2`.
-3.  Navigieren Sie zu `Build` > `Authentication`.
-4.  Finden Sie den Benutzer, den Sie zum Admin machen möchten.
-5.  Ändern Sie die `role`-Eigenschaft des Benutzers in Firestore (Sammlung `users`) auf `admin`.
-    Alternativ können Sie eine Firebase Cloud Function verwenden, um eine benutzerdefinierte Anspruch (Custom Claim) hinzuzufügen, z.B. `admin: true`.
+### Cloud Functions
 
-    *Hinweis:* Das Setzen der Rolle direkt in Firestore ist für Entwicklungszwecke in Ordnung, für eine Produktionsumgebung sollten Sie aus Sicherheitsgründen Cloud Functions verwenden, um Admin-Rollen zu verwalten. 
+- **addAdminRole**
+  - Typ: Callable Function
+  - Input: `{ email: string }`
+  - Nur für Admins! Setzt für einen User die Admin-Rolle.
+
+- **bookSlot**
+  - Typ: Callable Function
+  - Input: `{ slotId, serviceType, clientName, clientEmail }`
+  - Bucht einen Slot, erstellt einen Termin, versendet Bestätigungsmails.
+
+### Firestore Collections
+
+- **users:** User-Daten inkl. Rolle
+- **slots:** Termin-Slots (Datum, Zeit, Service, isBooked, …)
+- **appointments:** Gebuchte Termine
+- **mail:** E-Mail-Queue für Bestätigungen 
