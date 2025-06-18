@@ -81,7 +81,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       setError(null);
 
       const paymentData = {
-        appointmentId: appointment.id!,
+        appointmentId: appointment.id,
         amount: amount,
         paymentMethod: paymentMethod as 'stripe' | 'paypal' | 'cash' | 'bank_transfer',
         paymentType: paymentType
@@ -92,9 +92,13 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       
       onPaymentSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      setError(err.message || 'Fehler bei der Zahlungsverarbeitung');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fehler bei der Zahlungsverarbeitung');
+      }
     } finally {
       setLoading(false);
     }

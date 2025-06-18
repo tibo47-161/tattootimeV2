@@ -11,7 +11,6 @@ import ReviewForm from './components/Review/ReviewForm';
 import MaterialManagement from './components/Admin/MaterialManagement';
 import PaymentForm from './components/Payment/PaymentForm';
 import CustomerHistory from './components/Customer/CustomerHistory';
-import { Appointment } from './types';
 
 const theme = createTheme({
   palette: {

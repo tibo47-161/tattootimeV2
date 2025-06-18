@@ -45,8 +45,6 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
 
   // Load materials
   useEffect(() => {
@@ -100,7 +98,7 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
         }
       ];
       setMaterials(mockMaterials);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading materials:', error);
       setError('Fehler beim Laden der Materialien');
     } finally {
@@ -109,14 +107,14 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
   };
 
   const handleMaterialUsage = async () => {
-    if (!appointment || selectedMaterials.length === 0) return;
+    if (!appointment?.id || selectedMaterials.length === 0) return;
 
     try {
       setLoading(true);
       setError(null);
 
       const result = await recordMaterialUsageCallable({
-        appointmentId: appointment.id!,
+        appointmentId: appointment.id,
         materials: selectedMaterials
       });
 
@@ -125,9 +123,13 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
       setSelectedMaterials([]);
       loadMaterials(); // Reload to get updated stock levels
       onMaterialUsageRecorded?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error recording material usage:', err);
-      setError(err.message || 'Fehler beim Erfassen des Materialverbrauchs');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fehler beim Erfassen des Materialverbrauchs');
+      }
     } finally {
       setLoading(false);
     }
@@ -261,7 +263,6 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setDialogOpen(true)}
         >
           Material hinzufügen
         </Button>

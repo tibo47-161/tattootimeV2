@@ -57,14 +57,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   }, [open]);
 
   const handleSubmit = async () => {
-    if (!appointment || !currentUser) return;
+    if (!appointment?.id || !currentUser) return;
 
     try {
       setLoading(true);
       setError(null);
 
       const reviewData = {
-        appointmentId: appointment.id!,
+        appointmentId: appointment.id,
         rating: rating,
         comment: comment.trim() || undefined,
         isAnonymous: isAnonymous
@@ -75,9 +75,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       
       onReviewSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Review error:', err);
-      setError(err.message || 'Fehler beim Erstellen der Bewertung');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Fehler beim Erstellen der Bewertung');
+      }
     } finally {
       setLoading(false);
     }

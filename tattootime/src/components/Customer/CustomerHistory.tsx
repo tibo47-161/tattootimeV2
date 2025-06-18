@@ -43,12 +43,10 @@ import { CustomerHistory as CustomerHistoryType } from '../../types';
 
 interface CustomerHistoryProps {
   userId?: string;
-  isAdmin?: boolean;
 }
 
 const CustomerHistory: React.FC<CustomerHistoryProps> = ({
-  userId,
-  isAdmin = false
+  userId
 }) => {
   const { currentUser } = useAuth();
 
@@ -127,7 +125,7 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({
         }
       ];
       setHistory(mockHistory);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading customer history:', error);
       setError('Fehler beim Laden der Kundenhistorie');
     } finally {
@@ -220,25 +218,29 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({
   };
 
   const exportData = () => {
-    const filteredHistory = filterHistory();
-    const csvContent = [
-      ['Datum', 'Typ', 'Beschreibung', 'Metadaten'],
-      ...filteredHistory.map(item => [
-        formatDate(item.createdAt),
-        getTypeLabel(item.type),
-        item.description,
-        JSON.stringify(item.metadata || {})
-      ])
-    ].map(row => row.join(',')).join('\n');
+    try {
+      const filteredHistory = filterHistory();
+      const csvContent = [
+        ['Datum', 'Typ', 'Beschreibung', 'Metadaten'],
+        ...filteredHistory.map(item => [
+          formatDate(item.createdAt),
+          getTypeLabel(item.type),
+          item.description,
+          JSON.stringify(item.metadata || {})
+        ])
+      ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kundenhistorie_${targetUserId}_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    setExportDialogOpen(false);
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kundenhistorie_${targetUserId}_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setExportDialogOpen(false);
+    } catch (err: unknown) {
+      setError('Fehler beim Exportieren der Daten');
+    }
   };
 
   const renderHistoryTable = () => {
