@@ -173,21 +173,19 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
     }
   };
 
-  // Hilfsfunktion: Alle belegten Tage als Set von yyyy-MM-dd-Strings
-  const getBookedDaysSet = () => {
-    return new Set(appointments.map(a => format(parseISO(a.date), 'yyyy-MM-dd')));
-  };
-
   // Freie Tage im aktuellen Monat berechnen
   useEffect(() => {
     if (!selectedDate) return;
+    const getBookedDaysSet = () => {
+      return new Set(appointments.map(a => format(parseISO(a.date), 'yyyy-MM-dd')));
+    };
     const monthStart = startOfMonth(selectedDate);
     const monthEnd = endOfMonth(selectedDate);
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
     const bookedDays = getBookedDaysSet();
     const free = daysInMonth.filter(day => !bookedDays.has(format(day, 'yyyy-MM-dd')));
     setFreeDays(free);
-  }, [appointments, selectedDate, getBookedDaysSet]);
+  }, [appointments, selectedDate]);
 
   // Handler für Klick auf freien Tag (im Kalender oder in der Liste)
   const handleFreeDayClick = (date: Date) => {
