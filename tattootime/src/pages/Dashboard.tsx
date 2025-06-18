@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
               <Typography variant="h5" component="h2" gutterBottom>
                 Admin-Bereich: Terminverwaltung
               </Typography>
-              <AdminAppointments currentUserId={currentUser.id} />
+              <AdminAppointments currentUserId={currentUser.id} isAdmin={true} />
             </Paper>
           </Grid>
         </Grid>

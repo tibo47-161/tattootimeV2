@@ -32,13 +32,14 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
   const [clientNameInput, setClientNameInput] = useState('');
   const [clientEmailInput, setClientEmailInput] = useState('');
 
-  const { currentUser } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
 
   const functions = getFunctions();
   const bookSlotCallable = httpsCallable(functions, 'bookSlot');
 
   useEffect(() => {
     const fetchAppointments = async () => {
+      if (authLoading || !currentUser) return;
       try {
         setLoading(true);
         const fetchedAppointments = await getAppointments();
@@ -51,10 +52,10 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
       }
     };
     fetchAppointments();
-  }, []);
+  }, [currentUser, authLoading]);
 
   const handleDateChange = async (date: Date | null) => {
-    if (!date) return;
+    if (!date || authLoading || !currentUser) return;
 
     setSelectedDate(date);
     try {

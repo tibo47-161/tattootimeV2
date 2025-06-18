@@ -41,5 +41,10 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // Rules for the 'mail' collection (Firebase Extension "Trigger Email")
+    match /mail/{document} {
+      allow create: if request.auth != null;
+    }
   }
 }
