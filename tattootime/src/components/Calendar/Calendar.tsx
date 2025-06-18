@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { DateCalendar } from '@mui/x-date-pickers';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { Paper, Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, List, ListItem, ListItemText, Chip, IconButton, Alert, Snackbar, TextField } from '@mui/material';
 import { Theme } from '@mui/material/styles/index.js';
 import { de } from 'date-fns/locale';
-import { format, parseISO, isSameDay } from 'date-fns';
+import { format, parseISO, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Add as AddIcon } from '@mui/icons-material';
-import { getAppointments, getAppointmentsByDate } from '../../services/appointmentService';
+import { getAppointments, getAppointmentsByDate, createAppointment } from '../../services/appointmentService';
 import { Appointment, Slot } from '../../types';
 import { getAvailableSlotsByDate } from '../../services/slotService';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../context/AuthContext';
+import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
 
 interface CalendarProps {
   onDateSelect?: (date: Date) => void;
@@ -31,6 +32,9 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const [clientNameInput, setClientNameInput] = useState('');
   const [clientEmailInput, setClientEmailInput] = useState('');
+  const [freeDays, setFreeDays] = useState<Date[]>([]);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [bookingDate, setBookingDate] = useState<Date | null>(null);
 
   const { currentUser, loading: authLoading } = useAuth();
 
@@ -169,6 +173,71 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
     }
   };
 
+  // Hilfsfunktion: Alle belegten Tage als Set von yyyy-MM-dd-Strings
+  const getBookedDaysSet = () => {
+    return new Set(appointments.map(a => format(parseISO(a.date), 'yyyy-MM-dd')));
+  };
+
+  // Freie Tage im aktuellen Monat berechnen
+  useEffect(() => {
+    if (!selectedDate) return;
+    const monthStart = startOfMonth(selectedDate);
+    const monthEnd = endOfMonth(selectedDate);
+    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const bookedDays = getBookedDaysSet();
+    const free = daysInMonth.filter(day => !bookedDays.has(format(day, 'yyyy-MM-dd')));
+    setFreeDays(free);
+  }, [appointments, selectedDate, getBookedDaysSet]);
+
+  // Handler für Klick auf freien Tag (im Kalender oder in der Liste)
+  const handleFreeDayClick = (date: Date) => {
+    setBookingDate(date);
+    setBookingDialogOpen(true);
+  };
+
+  // Buchungsdialog schließen
+  const handleBookingDialogClose = () => {
+    setBookingDialogOpen(false);
+    setBookingDate(null);
+  };
+
+  // Custom Day-Komponente für slots-API, nutzt freeDays und handleFreeDayClick aus dem Closure
+  const CustomDay = (props: PickersDayProps<Date>) => {
+    const { day, ...other } = props;
+    const isFree = freeDays.some(freeDay => isSameDay(freeDay, day));
+    return (
+      <Box sx={{ position: 'relative', width: 36, height: 36 }} onClick={() => isFree ? handleFreeDayClick(day) : undefined}>
+        <span style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 2,
+          cursor: isFree ? 'pointer' : 'default',
+          borderRadius: '50%',
+          background: isFree ? 'rgba(76, 175, 80, 0.2)' : 'none',
+        }} />
+        <PickersDay day={day} {...other} />
+        {isFree && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 4,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: 'green',
+              zIndex: 3,
+            }}
+          />
+        )}
+      </Box>
+    );
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 2, maxWidth: 400, mx: 'auto', my: 2 }}>
       <Box sx={{ mb: 2 }}>
@@ -177,10 +246,17 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
         </Typography>
       </Box>
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-        <DateCalendar
+        <DatePicker
+          openTo="day"
+          views={['day', 'month', 'year']}
           value={selectedDate}
           onChange={handleDateChange}
-          loading={loading}
+          slotProps={{
+            textField: { style: { display: 'none' } },
+          }}
+          slots={{
+            day: CustomDay,
+          }}
           sx={{
             width: '100%',
             '& .MuiPickersCalendarHeader-root': {
@@ -216,6 +292,97 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
           }}
         />
       </LocalizationProvider>
+
+      {/* Freie Tage als Liste unter dem Kalender */}
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="subtitle1">Freie Tage im Monat:</Typography>
+        {freeDays.length === 0 ? (
+          <Typography variant="body2">Keine freien Tage in diesem Monat.</Typography>
+        ) : (
+          <List>
+            {freeDays.map(day => (
+              <ListItem key={format(day, 'yyyy-MM-dd')}>
+                <Button variant="outlined" onClick={() => handleFreeDayClick(day)}>
+                  {format(day, 'dd.MM.yyyy')}
+                </Button>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Box>
+
+      {/* Buchungsdialog für freie Tage */}
+      <Dialog open={bookingDialogOpen} onClose={handleBookingDialogClose}>
+        <DialogTitle>Buchungsanfrage für {bookingDate ? format(bookingDate, 'dd.MM.yyyy') : ''}</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Ihr Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={clientNameInput}
+            onChange={(e) => setClientNameInput(e.target.value)}
+            required
+            error={!clientNameInput.trim()}
+            helperText={!clientNameInput.trim() ? 'Bitte geben Sie Ihren Namen ein' : ''}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            label="Ihre E-Mail"
+            type="email"
+            fullWidth
+            variant="outlined"
+            value={clientEmailInput}
+            onChange={(e) => setClientEmailInput(e.target.value)}
+            required
+            error={!clientEmailInput.trim() || !clientEmailInput.includes('@')}
+            helperText={
+              !clientEmailInput.trim() || !clientEmailInput.includes('@')
+                ? 'Bitte geben Sie eine gültige E-Mail-Adresse ein'
+                : ''
+            }
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleBookingDialogClose}>Abbrechen</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!clientNameInput.trim() || !clientEmailInput.trim() || !clientEmailInput.includes('@')}
+            onClick={async () => {
+              if (!bookingDate) return;
+              try {
+                setLoading(true);
+                await createAppointment({
+                  date: format(bookingDate, 'yyyy-MM-dd'),
+                  clientName: clientNameInput,
+                  clientEmail: clientEmailInput,
+                });
+                setSnackbarMessage('Buchungsanfrage gesendet!');
+                setSnackbarSeverity('success');
+                setSnackbarOpen(true);
+                setClientNameInput('');
+                setClientEmailInput('');
+                handleBookingDialogClose();
+                // Termine neu laden
+                const fetchedAppointments = await getAppointments();
+                setAppointments(fetchedAppointments);
+              } catch (err) {
+                setSnackbarMessage('Fehler beim Senden der Buchungsanfrage.');
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
+            Anfrage senden
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Appointments/Slots Dialog */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>

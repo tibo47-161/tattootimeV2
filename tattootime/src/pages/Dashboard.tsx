@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import AdminAppointments from '../components/Admin/AdminAppointments';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import Calendar from '../components/Calendar/Calendar';
+import MyAppointmentsList from '../components/Customer/MyAppointmentsList';
 
 const Dashboard: React.FC = () => {
   const { currentUser, logout, loading } = useAuth();
@@ -165,7 +166,14 @@ const Dashboard: React.FC = () => {
                 Ihr Dashboard
               </Typography>
               <Box sx={{ mt: 2 }}>
-                <Typography>Hier kommt der normale Benutzer-Dashboard-Inhalt hin.</Typography>
+                <Typography sx={{ mb: 2 }}>Nächste Termine:</Typography>
+                <MyAppointmentsList maxItems={3} />
+                <Button component={Link} to="/my-appointments" variant="outlined" sx={{ mt: 2 }}>
+                  Alle Termine anzeigen
+                </Button>
+                <Button component={Link} to="/profile" variant="outlined" sx={{ mt: 2, mr: 2 }}>
+                  Mein Profil
+                </Button>
                 {/* Temporary button to set admin role */}
                 {currentUser && currentUser.email === 'tobi196183@gmail.com' && (
                   <Button

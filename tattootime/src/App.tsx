@@ -13,6 +13,7 @@ import AdminManagement from "./components/Admin/AdminManagement";
 import AdminAppointments from "./components/Admin/AdminAppointments";
 import PaymentForm from "./components/Payment/PaymentForm";
 import CustomerHistory from "./components/Customer/CustomerHistory";
+import Profile from "./pages/Profile";
 
 const theme = createTheme({
   palette: {
@@ -130,6 +131,22 @@ const App: React.FC = () => {
               element={
                 <PrivateRoute>
                   <CustomerHistory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profile/:userId"
+              element={
+                <PrivateRoute>
+                  <Profile />
                 </PrivateRoute>
               }
             />

@@ -90,6 +90,7 @@ export interface Appointment {
   };
   createdAt?: Date;
   updatedAt?: Date;
+  status?: string;
 }
 
 export interface Slot {

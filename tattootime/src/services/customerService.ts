@@ -410,4 +410,9 @@ export class CustomerService {
       throw error;
     }
   }
+}
+
+export async function updateUserProfile(userId: string, data: Partial<User>) {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, data);
 } 
