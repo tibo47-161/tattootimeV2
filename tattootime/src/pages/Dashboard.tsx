@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Container, Typography, Box, Button, Grid, Paper } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import AdminAppointments from '../components/Admin/AdminAppointments';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import Calendar from '../components/Calendar/Calendar';
@@ -90,6 +90,29 @@ const Dashboard: React.FC = () => {
                 Admin-Bereich: Terminverwaltung
               </Typography>
               <AdminAppointments currentUserId={currentUser.id} isAdmin={true} />
+            </Paper>
+          </Grid>
+
+          {/* Erweiterte Features für Admins */}
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h5" component="h2" gutterBottom>
+                Erweiterte Features
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <Button component={Link} to="/material-management" variant="outlined">
+                  Materialverwaltung
+                </Button>
+                <Button component={Link} to="/payment" variant="outlined">
+                  Zahlung
+                </Button>
+                <Button component={Link} to="/review" variant="outlined">
+                  Bewertungssystem
+                </Button>
+                <Button component={Link} to="/customer-history" variant="outlined">
+                  Kundenhistorie (GDPR)
+                </Button>
+              </Box>
             </Paper>
           </Grid>
         </Grid>
