@@ -58,10 +58,12 @@ export class AdminService {
    * @returns true, wenn der Benutzer Admin-Rechte hat, sonst false
    */
   static isAdmin(user: unknown): boolean {
-    // user should be an object with a token property
-    if (typeof user === "object" && user !== null && "token" in user) {
+    // user should be an object with a token property or a role property
+    if (typeof user === "object" && user !== null) {
       // @ts-expect-error: dynamic access
-      return user.token?.admin === true;
+      if (user.token?.admin === true) return true;
+      // @ts-expect-error: dynamic access
+      if (user.role === "admin") return true;
     }
     return false;
   }

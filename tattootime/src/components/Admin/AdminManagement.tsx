@@ -26,6 +26,11 @@ import BackToDashboard from '../Navigation/BackToDashboard';
 
 const AdminManagement: React.FC = () => {
   const { currentUser } = useAuth();
+  // Debug-Ausgabe für Admin-Status und User
+  // eslint-disable-next-line no-console
+  console.log("[AdminManagement] currentUser:", currentUser);
+  // eslint-disable-next-line no-console
+  console.log("[AdminManagement] isAdmin:", AdminService.isAdmin(currentUser));
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{
