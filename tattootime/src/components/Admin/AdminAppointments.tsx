@@ -119,7 +119,10 @@ const AdminAppointments: React.FC<AdminAppointmentsProps> = ({ currentUserId, is
     try {
       if (currentAppointment) {
         // Update appointment
-        const appointmentDoc = doc(db, 'appointments', currentAppointment.id!);
+        if (!currentAppointment.id) {
+          throw new Error('Appointment ID is required for update');
+        }
+        const appointmentDoc = doc(db, 'appointments', currentAppointment.id);
         await updateDoc(appointmentDoc, dataToSave);
 
         // Send email to client on update
@@ -242,7 +245,11 @@ const AdminAppointments: React.FC<AdminAppointmentsProps> = ({ currentUserId, is
               <IconButton edge="end" aria-label="edit" onClick={() => handleOpen(appointment)}>
                 <EditIcon />
               </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => deleteAppointment(appointment.id!)}>
+              <IconButton edge="end" aria-label="delete" onClick={() => {
+                if (appointment.id) {
+                  deleteAppointment(appointment.id);
+                }
+              }}>
                 <DeleteIcon />
               </IconButton>
             </ListItemSecondaryAction>

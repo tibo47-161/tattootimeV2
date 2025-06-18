@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
     try {
       await logout();
       navigate('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Fehler beim Abmelden:", error);
     }
   };
@@ -44,9 +44,10 @@ const Dashboard: React.FC = () => {
       alert(`Admin role set successfully for ${currentUser.email}. Please log out and log back in.`);
       // Force re-authentication to refresh claims
       await logout(); // Trigger logout to force re-authentication
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error setting admin role:', error);
-      alert(`Failed to set admin role: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to set admin role: ${errorMessage}`);
     }
   };
 

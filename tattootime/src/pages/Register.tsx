@@ -18,8 +18,9 @@ const Register: React.FC = () => {
       setLoading(true);
       await register(email, password);
       navigate('/dashboard'); // Oder eine Bestätigungsseite
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ein unbekannter Fehler ist aufgetreten';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

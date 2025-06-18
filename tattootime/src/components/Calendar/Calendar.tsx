@@ -73,10 +73,11 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
       if (onDateSelect) {
         onDateSelect(date);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Fehler beim Laden der Termine für diesen Tag');
       console.error('Error fetching data for date:', err);
-      setSnackbarMessage(`Fehler: ${err.message || 'Beim Laden der Daten ist ein Fehler aufgetreten.'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Beim Laden der Daten ist ein Fehler aufgetreten.';
+      setSnackbarMessage(`Fehler: ${errorMessage}`);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
@@ -126,8 +127,11 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
 
     try {
       setLoading(true);
+      if (!slot.id) {
+        throw new Error('Slot ID is required for booking');
+      }
       const result = await bookSlotCallable({
-        slotId: slot.id!,
+        slotId: slot.id,
         serviceType: slot.serviceType,
         clientName: name.trim(),
         clientEmail: email.trim(),
@@ -141,16 +145,18 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
       setClientEmailInput('');
 
       await handleDateChange(selectedDate);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error booking slot:', err);
       let errorMessage = 'Ein unbekannter Fehler ist aufgetreten.';
       
-      if (err.message?.includes('already-exists')) {
-        errorMessage = 'Dieser Termin wurde bereits gebucht. Bitte wählen Sie einen anderen Termin.';
-      } else if (err.message?.includes('unauthenticated')) {
-        errorMessage = 'Sie müssen angemeldet sein, um einen Termin zu buchen.';
-      } else if (err.message?.includes('not-found')) {
-        errorMessage = 'Der ausgewählte Termin ist nicht mehr verfügbar.';
+      if (err instanceof Error) {
+        if (err.message?.includes('already-exists')) {
+          errorMessage = 'Dieser Termin wurde bereits gebucht. Bitte wählen Sie einen anderen Termin.';
+        } else if (err.message?.includes('unauthenticated')) {
+          errorMessage = 'Sie müssen angemeldet sein, um einen Termin zu buchen.';
+        } else if (err.message?.includes('not-found')) {
+          errorMessage = 'Der ausgewählte Termin ist nicht mehr verfügbar.';
+        }
       }
 
       setError(errorMessage);
