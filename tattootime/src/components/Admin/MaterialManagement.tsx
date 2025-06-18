@@ -190,7 +190,7 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
         <TableBody>
           {materials.map((material) => {
             const stockStatus = getStockStatus(material);
-            const selectedQuantity = getSelectedQuantity(material.id!);
+            const selectedQuantity = getSelectedQuantity(material.id ?? '');
             const materialCost = material.costPerUnit * selectedQuantity;
 
             return (
@@ -228,7 +228,7 @@ const MaterialManagement: React.FC<MaterialManagementProps> = ({
                     type="number"
                     size="small"
                     value={selectedQuantity}
-                    onChange={(e) => handleQuantityChange(material.id!, Number(e.target.value))}
+                    onChange={(e) => handleQuantityChange(material.id ?? '', Number(e.target.value))}
                     InputProps={{
                       endAdornment: <InputAdornment position="end">{material.unit}</InputAdornment>,
                     }}

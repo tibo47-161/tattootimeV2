@@ -269,7 +269,7 @@ const CustomerHistory: React.FC<CustomerHistoryProps> = ({
                   <Chip
                     icon={getTypeIcon(item.type)}
                     label={getTypeLabel(item.type)}
-                    color={getTypeColor(item.type) as any}
+                    color={getTypeColor(item.type) as "error" | "default" | "primary" | "success" | "warning" | "info" | "secondary"}
                     size="small"
                   />
                 </TableCell>
