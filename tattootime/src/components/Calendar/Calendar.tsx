@@ -199,25 +199,31 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
     setBookingDate(null);
   };
 
-  // Custom Day-Komponente für slots-API, nutzt freeDays und handleFreeDayClick aus dem Closure
+  // Custom Day-Komponente für Admins: Gebuchte Tage farbig markieren
   const CustomDay = (props: PickersDayProps<Date>) => {
     const { day, ...other } = props;
     const isFree = freeDays.some(freeDay => isSameDay(freeDay, day));
+    const isBooked = appointments.some(appointment => isSameDay(parseISO(appointment.date), day));
     return (
-      <Box sx={{ position: 'relative', width: 36, height: 36 }} onClick={() => isFree ? handleFreeDayClick(day) : undefined}>
-        <span style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 2,
-          cursor: isFree ? 'pointer' : 'default',
-          borderRadius: '50%',
-          background: isFree ? 'rgba(76, 175, 80, 0.2)' : 'none',
-        }} />
-        <PickersDay day={day} {...other} />
-        {isFree && (
+      <Box sx={{ position: 'relative', width: 36, height: 36 }} onClick={() => isAdmin || isFree ? handleFreeDayClick(day) : undefined}>
+        {/* Farbpunkte für gebuchte Tage (nur für Admins) */}
+        {isAdmin && isBooked && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 4,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              backgroundColor: (theme: Theme) => theme.palette.primary.main,
+              zIndex: 3,
+            }}
+          />
+        )}
+        {/* Punkt für freie Tage (nur für Nutzer) */}
+        {!isAdmin && isFree && (
           <Box
             sx={{
               position: 'absolute',
@@ -232,6 +238,7 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
             }}
           />
         )}
+        <PickersDay day={day} {...other} />
       </Box>
     );
   };
