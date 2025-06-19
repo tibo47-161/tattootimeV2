@@ -243,71 +243,77 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
           Termin Kalender
         </Typography>
       </Box>
-      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
-        <DatePicker
-          openTo="day"
-          views={['day', 'month', 'year']}
-          value={selectedDate}
-          onChange={handleDateChange}
-          slotProps={{
-            textField: { style: { display: 'none' } },
-          }}
-          slots={{
-            day: CustomDay,
-          }}
-          sx={{
-            width: '100%',
-            '& .MuiPickersCalendarHeader-root': {
-              backgroundColor: 'primary.main',
-              color: 'white',
-              borderRadius: 1,
-            },
-            '& .MuiPickersDay-root.Mui-selected': {
-              backgroundColor: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.dark',
+
+      {/* Admin sieht den Kalender */}
+      {isAdmin && (
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+          <DatePicker
+            openTo="day"
+            views={['day', 'month', 'year']}
+            value={selectedDate}
+            onChange={handleDateChange}
+            slotProps={{
+              textField: { style: { display: 'none' } },
+            }}
+            slots={{
+              day: CustomDay,
+            }}
+            sx={{
+              width: '100%',
+              '& .MuiPickersCalendarHeader-root': {
+                backgroundColor: 'primary.main',
+                color: 'white',
+                borderRadius: 1,
               },
-            },
-            '& .MuiPickersDay-root': {
-              position: 'relative',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: 4,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                backgroundColor: (theme: Theme) => {
-                  const day = theme.palette.mode === 'dark' ? 'white' : 'black';
-                  return appointments.some(appointment => 
-                    isSameDay(parseISO(appointment.date), new Date(day))
-                  ) ? 'primary.main' : 'transparent';
+              '& .MuiPickersDay-root.Mui-selected': {
+                backgroundColor: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
                 },
               },
-            },
-          }}
-        />
-      </LocalizationProvider>
+              '& .MuiPickersDay-root': {
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 4,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  backgroundColor: (theme: Theme) => {
+                    const day = theme.palette.mode === 'dark' ? 'white' : 'black';
+                    return appointments.some(appointment => 
+                      isSameDay(parseISO(appointment.date), new Date(day))
+                    ) ? 'primary.main' : 'transparent';
+                  },
+                },
+              },
+            }}
+          />
+        </LocalizationProvider>
+      )}
 
-      {/* Freie Tage als Liste unter dem Kalender */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="subtitle1">Freie Tage im Monat:</Typography>
-        {freeDays.length === 0 ? (
-          <Typography variant="body2">Keine freien Tage in diesem Monat.</Typography>
-        ) : (
-          <List>
-            {freeDays.map(day => (
-              <ListItem key={format(day, 'yyyy-MM-dd')}>
-                <Button variant="outlined" onClick={() => handleFreeDayClick(day)}>
-                  {format(day, 'dd.MM.yyyy')}
-                </Button>
-              </ListItem>
-            ))}
-          </List>
-        )}
-      </Box>
+      {/* Normale Nutzer sehen nur die Liste der freien Tage */}
+      {!isAdmin && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1">Freie Tage im Monat:</Typography>
+          {freeDays.length === 0 ? (
+            <Typography variant="body2">Keine freien Tage in diesem Monat.</Typography>
+          ) : (
+            <List>
+              {freeDays.map(day => (
+                <ListItem key={format(day, 'yyyy-MM-dd')}>
+                  <Button variant="outlined" onClick={() => handleFreeDayClick(day)}>
+                    {format(day, 'dd.MM.yyyy')}
+                  </Button>
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Box>
+      )}
 
       {/* Buchungsdialog für freie Tage */}
       <Dialog open={bookingDialogOpen} onClose={handleBookingDialogClose}>
