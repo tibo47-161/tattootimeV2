@@ -244,7 +244,7 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
         </Typography>
       </Box>
 
-      {/* Admin sieht den Kalender */}
+      {/* Admin sieht den klassischen Kalender mit anklickbaren Tagen */}
       {isAdmin && (
         <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
           <DatePicker
@@ -252,44 +252,11 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, isAdmin = false }) =>
             views={['day', 'month', 'year']}
             value={selectedDate}
             onChange={handleDateChange}
-            slotProps={{
-              textField: { style: { display: 'none' } },
-            }}
             slots={{
               day: CustomDay,
             }}
             sx={{
               width: '100%',
-              '& .MuiPickersCalendarHeader-root': {
-                backgroundColor: 'primary.main',
-                color: 'white',
-                borderRadius: 1,
-              },
-              '& .MuiPickersDay-root.Mui-selected': {
-                backgroundColor: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
-                },
-              },
-              '& .MuiPickersDay-root': {
-                position: 'relative',
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 4,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  backgroundColor: (theme: Theme) => {
-                    const day = theme.palette.mode === 'dark' ? 'white' : 'black';
-                    return appointments.some(appointment => 
-                      isSameDay(parseISO(appointment.date), new Date(day))
-                    ) ? 'primary.main' : 'transparent';
-                  },
-                },
-              },
             }}
           />
         </LocalizationProvider>
